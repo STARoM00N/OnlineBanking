@@ -1,0 +1,22 @@
+<!DOCTYPE html>
+<html xmlns:th="http://www.thymeleaf.org">
+<head>
+  <title>Transaction History</title>
+</head>
+<body>
+<h1>Transaction History</h1>
+<table>
+  <tr>
+    <th>Type</th>
+    <th>Amount</th>
+    <th>Date</th>
+  </tr>
+  <tr th:each="transaction : ${transactions}">
+    <td th:text="${transaction.transactionType}"></td>
+    <td th:text="${transaction.amount}"></td>
+    <td th:text="${transaction.createdAt}"></td>
+  </tr>
+</table>
+<a href="/dashboard">Back to Dashboard</a>
+</body>
+</html>
