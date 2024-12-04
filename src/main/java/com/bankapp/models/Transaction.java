@@ -1,4 +1,5 @@
 package com.bankapp.models;
+
 import jakarta.persistence.*;
 import java.math.BigDecimal;
 import java.time.LocalDateTime;
@@ -6,27 +7,30 @@ import java.time.LocalDateTime;
 @Entity
 @Table(name = "transactions")
 public class Transaction {
+
     @Id
     @GeneratedValue(strategy = GenerationType.IDENTITY)
     private Long id;
 
     @ManyToOne
-    @JoinColumn(name = "user_id", nullable = false)
+    @JoinColumn(name = "user_id")
     private User user;
-
-    @Column(nullable = false)
-    private String transactionType;
 
     @Column(nullable = false)
     private BigDecimal amount;
 
-    @Column(name = "created_at", nullable = false)
-    private LocalDateTime createdAt;
+    @Column(nullable = false)
+    private String type;  // deposit, withdraw, etc.
 
-    @PrePersist
-    public void onCreate() {
-        this.createdAt = LocalDateTime.now();
-    }
+    @Column(nullable = false)
+    private LocalDateTime createdAt;  // To store the time of transaction
+
+    // Optional: formatted date if you want to display it in the view
+    @Transient
+    private String formattedDate;
+
+    @Transient
+    private String formattedAmount;  // Don't persist this field in the database
 
     // Getters and Setters
     public Long getId() {
@@ -45,14 +49,6 @@ public class Transaction {
         this.user = user;
     }
 
-    public String getTransactionType() {
-        return transactionType;
-    }
-
-    public void setTransactionType(String transactionType) {
-        this.transactionType = transactionType;
-    }
-
     public BigDecimal getAmount() {
         return amount;
     }
@@ -61,11 +57,35 @@ public class Transaction {
         this.amount = amount;
     }
 
+    public String getType() {
+        return type;
+    }
+
+    public void setType(String type) {
+        this.type = type;
+    }
+
     public LocalDateTime getCreatedAt() {
         return createdAt;
     }
 
     public void setCreatedAt(LocalDateTime createdAt) {
         this.createdAt = createdAt;
+    }
+
+    public String getFormattedDate() {
+        return formattedDate;
+    }
+
+    public void setFormattedDate(String formattedDate) {
+        this.formattedDate = formattedDate;
+    }
+
+    public String getFormattedAmount() {
+        return formattedAmount;
+    }
+
+    public void setFormattedAmount(String formattedAmount) {
+        this.formattedAmount = formattedAmount;
     }
 }

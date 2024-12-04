@@ -19,9 +19,9 @@
     </thead>
     <tbody>
     <tr th:each="transaction : ${transactions}">
-      <td th:text="${transaction.transactionType}"></td>
-      <td th:text="${transaction.amount}"></td>
-      <td th:text="${transaction.createdAt}"></td>
+      <td th:text="${transaction.formattedAmount}"></td>
+      <td th:text="${transaction.type}"></td>
+      <td th:text="${transaction.formattedDate}"></td>
     </tr>
     </tbody>
   </table>

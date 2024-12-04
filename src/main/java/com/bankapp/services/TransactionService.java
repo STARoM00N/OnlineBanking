@@ -17,6 +17,10 @@ public class TransactionService {
     @Autowired
     private TransactionRepository transactionRepository;
 
+    public void saveTransaction(Transaction transaction) {
+        transactionRepository.save(transaction);  // Save to the database
+    }
+
     @Autowired
     private UserRepository userRepository;
 
@@ -28,29 +32,35 @@ public class TransactionService {
 
         Transaction transaction = new Transaction();
         transaction.setUser(user);
-        transaction.setTransactionType("DEPOSIT");
+        transaction.setType("DEPOSIT");
         transaction.setAmount(amount);
         transaction.setCreatedAt(LocalDateTime.now());
         transactionRepository.save(transaction);
     }
 
+    // การสร้างธุรกรรมใหม่ในฟังก์ชัน withdraw
     public void withdraw(Long userId, BigDecimal amount) {
-        User user = userRepository.findById(userId)
-                .orElseThrow(() -> new IllegalArgumentException("User not found"));
-
-        BigDecimal totalBalance = user.getBalance(); // ดึงยอดคงเหลือ
-        if (totalBalance.compareTo(amount) < 0) {
-            throw new IllegalArgumentException("Insufficient funds");
+        // ตรวจสอบยอดเงินในบัญชี และทำการถอนเงิน
+        if (amount.compareTo(BigDecimal.ZERO) <= 0) {
+            throw new IllegalArgumentException("Amount must be greater than zero");
+        }
+        User user = userRepository.findById(userId).orElseThrow(() -> new IllegalArgumentException("User not found"));
+        if (user.getBalance().compareTo(amount) < 0) {
+            throw new IllegalArgumentException("Insufficient balance");
         }
 
-        user.setBalance(totalBalance.subtract(amount)); // หักยอดเงินออก
-        userRepository.save(user); // บันทึกข้อมูลผู้ใช้
-
-        // บันทึกการทำธุรกรรม
+        // สร้างธุรกรรมใหม่
         Transaction transaction = new Transaction();
         transaction.setUser(user);
-        transaction.setTransactionType("WITHDRAW");
-        transaction.setAmount(amount.negate()); // บันทึกเป็นจำนวนเงินติดลบ
+        transaction.setAmount(amount);
+        transaction.setType("WITHDRAW");
+        transaction.setCreatedAt(LocalDateTime.now());  // ตั้งค่า createdAt เป็นเวลาปัจจุบัน
+
+        // ลดยอดเงินในบัญชี
+        user.setBalance(user.getBalance().subtract(amount));
+        userRepository.save(user);
+
+        // บันทึกธุรกรรม
         transactionRepository.save(transaction);
     }
 
@@ -61,7 +71,7 @@ public class TransactionService {
                 .orElseThrow(() -> new IllegalArgumentException("Receiver not found"));
 
         if (sender.getBalance().compareTo(amount) < 0) {
-            throw new IllegalArgumentException("Insufficient funds");
+            throw new IllegalArgumentException("Insufficient funds. Your balance is not enough to transfer.");
         }
 
         sender.setBalance(sender.getBalance().subtract(amount));
@@ -71,14 +81,14 @@ public class TransactionService {
 
         Transaction senderTransaction = new Transaction();
         senderTransaction.setUser(sender);
-        senderTransaction.setTransactionType("TRANSFER_OUT");
+        senderTransaction.setType("TRANSFER_OUT");
         senderTransaction.setAmount(amount.negate());
         senderTransaction.setCreatedAt(LocalDateTime.now());
         transactionRepository.save(senderTransaction);
 
         Transaction receiverTransaction = new Transaction();
         receiverTransaction.setUser(receiver);
-        receiverTransaction.setTransactionType("TRANSFER_IN");
+        receiverTransaction.setType("TRANSFER_IN");
         receiverTransaction.setAmount(amount);
         receiverTransaction.setCreatedAt(LocalDateTime.now());
         transactionRepository.save(receiverTransaction);

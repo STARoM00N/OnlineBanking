@@ -3,13 +3,15 @@ package com.bankapp.controllers;
 import com.bankapp.models.User;
 import com.bankapp.repositories.UserRepository;
 import com.bankapp.services.TransactionService;
+import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Controller;
 import org.springframework.ui.Model;
 import org.springframework.web.bind.annotation.GetMapping;
-
+import java.text.DecimalFormat;
 import java.math.BigDecimal;
 import java.security.Principal;
+import java.util.logging.Logger;
 
 @Controller
 public class DashboardController {
@@ -22,24 +24,32 @@ public class DashboardController {
 
     @GetMapping("/dashboard")
     public String dashboardPage(Model model, Principal principal) {
-        // Get username (could be email or username)
-        String username = principal.getName();
-        model.addAttribute("username", username);
+        // Retrieve username from Principal
+        String usernameOrEmail = principal.getName();
 
-        // Check if it's an email or username and find user accordingly
-        User user = userRepository.findByEmail(username)
-                .orElseGet(() -> userRepository.findByUsername(username)
-                        .orElseThrow(() -> new IllegalArgumentException("User not found")));
+        // Find user by username or email
+        User user = userRepository.findByUsernameOrEmail(usernameOrEmail, usernameOrEmail)
+                .orElse(null);
 
-        // Get user balance
+        if (user == null) {
+            // Handle case where user is not found
+            model.addAttribute("errorMessage", "User not found.");
+            return "error-page";
+        }
+
+        // Get user's balance
         BigDecimal balance = transactionService.getUserBalance(user.getId());
-        model.addAttribute("balance", balance);
 
-        // Add a welcome message
-        model.addAttribute("welcomeMessage", "Welcome to your Dashboard!");
+        // Format the balance
+        DecimalFormat df = new DecimalFormat("#,###.00");
+        String formattedBalance = df.format(balance);
 
-        return "dashboard"; // Return the dashboard view
+        // Pass data to the view
+        model.addAttribute("formattedBalance", formattedBalance);
+        model.addAttribute("username", user.getUsername());
+        return "dashboard";
     }
+
 
 }
 
