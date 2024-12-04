@@ -15,7 +15,7 @@ public class User {
     private String email;
 
     @Column(nullable = false, unique = true)
-    private String name; // Treat as "username"
+    private String username;
 
     @Column(nullable = false)
     private String password;
@@ -25,6 +25,9 @@ public class User {
 
     @Column(nullable = false)
     private BigDecimal balance = BigDecimal.ZERO;
+
+    @Column(nullable = false)
+    private String fullName;
 
     // Getters and Setters
     public Long getId() {
@@ -43,12 +46,12 @@ public class User {
         this.email = email;
     }
 
-    public String getName() {
-        return name;
+    public String getUsername() {
+        return username;
     }
 
-    public void setName(String name) {
-        this.name = name;
+    public void setUsername(String username) {
+        this.username = username;
     }
 
     public String getPassword() {
@@ -73,5 +76,13 @@ public class User {
 
     public void setBalance(BigDecimal balance) {
         this.balance = balance;
+    }
+
+    public String getFullName() {
+        return fullName;
+    }
+
+    public void setFullName(String fullName) {
+        this.fullName = fullName;
     }
 }

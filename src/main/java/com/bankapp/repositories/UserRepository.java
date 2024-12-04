@@ -10,8 +10,12 @@ import java.util.Optional;
 @Repository
 public interface UserRepository extends JpaRepository<User, Long> {
 
-    @Query("SELECT u FROM User u WHERE u.email = :emailOrUsername OR u.name = :emailOrUsername")
-    Optional<User> findByUsernameOrEmail(String emailOrUsername);
-
     Optional<User> findByEmail(String email);
+
+    Optional<User> findByUsername(String username);
+
+    // แก้ไข method นี้โดยใช้ @Query
+    @Query("SELECT u FROM User u WHERE u.email = :emailOrUsername OR u.username = :emailOrUsername")
+    Optional<User> findByEmailOrUsername(String emailOrUsername);
 }
+

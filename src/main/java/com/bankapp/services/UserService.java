@@ -25,9 +25,14 @@ public class UserService implements UserDetailsService {
     }
 
     public User registerUser(User user) {
+        // ตรวจสอบอีเมลและชื่อผู้ใช้งาน
         if (userRepository.findByEmail(user.getEmail()).isPresent()) {
-            throw new IllegalArgumentException("Email is already in use");
+            throw new IllegalArgumentException("อีเมลนี้ถูกใช้งานแล้ว");
         }
+        if (userRepository.findByUsername(user.getUsername()).isPresent()) {
+            throw new IllegalArgumentException("ชื่อผู้ใช้นี้ถูกใช้งานแล้ว");
+        }
+        // เข้ารหัสรหัสผ่านก่อนบันทึก
         user.setPassword(passwordEncoder.encode(user.getPassword()));
         return userRepository.save(user);
     }
@@ -38,11 +43,11 @@ public class UserService implements UserDetailsService {
 
     @Override
     public UserDetails loadUserByUsername(String usernameOrEmail) throws UsernameNotFoundException {
-        User user = userRepository.findByUsernameOrEmail(usernameOrEmail)
-                .orElseThrow(() -> new UsernameNotFoundException("User not found with username or email: " + usernameOrEmail));
+        User user = userRepository.findByEmailOrUsername(usernameOrEmail)
+                .orElseThrow(() -> new UsernameNotFoundException("ไม่พบผู้ใช้งานกับอีเมลหรือชื่อผู้ใช้: " + usernameOrEmail));
 
         return org.springframework.security.core.userdetails.User.builder()
-                .username(user.getEmail()) // Spring Security expects a unique identifier; email is used here
+                .username(user.getUsername()) // ใช้ username ในการ login
                 .password(user.getPassword())
                 .roles(user.getRole())
                 .build();

@@ -37,17 +37,20 @@ public class TransactionService {
     public void withdraw(Long userId, BigDecimal amount) {
         User user = userRepository.findById(userId)
                 .orElseThrow(() -> new IllegalArgumentException("User not found"));
-        if (user.getBalance().compareTo(amount) < 0) {
+
+        BigDecimal totalBalance = user.getBalance(); // ดึงยอดคงเหลือ
+        if (totalBalance.compareTo(amount) < 0) {
             throw new IllegalArgumentException("Insufficient funds");
         }
-        user.setBalance(user.getBalance().subtract(amount));
-        userRepository.save(user);
 
+        user.setBalance(totalBalance.subtract(amount)); // หักยอดเงินออก
+        userRepository.save(user); // บันทึกข้อมูลผู้ใช้
+
+        // บันทึกการทำธุรกรรม
         Transaction transaction = new Transaction();
         transaction.setUser(user);
         transaction.setTransactionType("WITHDRAW");
-        transaction.setAmount(amount.negate());
-        transaction.setCreatedAt(LocalDateTime.now());
+        transaction.setAmount(amount.negate()); // บันทึกเป็นจำนวนเงินติดลบ
         transactionRepository.save(transaction);
     }
 

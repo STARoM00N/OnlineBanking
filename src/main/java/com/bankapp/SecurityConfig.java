@@ -27,7 +27,7 @@ public class SecurityConfig {
                 )
                 .formLogin(form -> form
                         .loginPage("/login")
-                        .usernameParameter("usernameOrEmail") // This matches the updated input field name
+                        .usernameParameter("usernameOrEmail") // ใช้ชื่อฟิลด์นี้ในการ login
                         .defaultSuccessUrl("/dashboard", true)
                         .permitAll()
                 )
@@ -41,3 +41,4 @@ public class SecurityConfig {
     }
 
 }
+

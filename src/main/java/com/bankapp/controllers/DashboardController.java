@@ -22,22 +22,24 @@ public class DashboardController {
 
     @GetMapping("/dashboard")
     public String dashboardPage(Model model, Principal principal) {
-        // ดึง username จาก Principal
+        // Get username (could be email or username)
         String username = principal.getName();
         model.addAttribute("username", username);
 
-        // ดึง User จากฐานข้อมูล
+        // Check if it's an email or username and find user accordingly
         User user = userRepository.findByEmail(username)
-                .orElseThrow(() -> new IllegalArgumentException("User not found"));
+                .orElseGet(() -> userRepository.findByUsername(username)
+                        .orElseThrow(() -> new IllegalArgumentException("User not found")));
 
-        // ดึงยอดเงินคงเหลือ
+        // Get user balance
         BigDecimal balance = transactionService.getUserBalance(user.getId());
         model.addAttribute("balance", balance);
 
-        // เพิ่มข้อความต้อนรับ
+        // Add a welcome message
         model.addAttribute("welcomeMessage", "Welcome to your Dashboard!");
 
-        return "dashboard"; // ชื่อไฟล์ HTML ที่จะแสดง
+        return "dashboard"; // Return the dashboard view
     }
+
 }
 

@@ -47,15 +47,18 @@ public class UserController {
 
     // ฟังก์ชันลงทะเบียนผ่านฟอร์ม
     @PostMapping("/register")
-    public String formRegisterUser(@RequestParam String name,
+    public String formRegisterUser(@RequestParam String fullname,
                                    @RequestParam String email,
+                                   @RequestParam String username,
                                    @RequestParam String password,
                                    @RequestParam(required = false, defaultValue = "USER") String role,
                                    Model model) {
+        System.out.println("Full Name: " + fullname);  // Log to check if fullname is being passed
         try {
             User user = new User();
-            user.setName(name);
+            user.setFullName(fullname);
             user.setEmail(email);
+            user.setUsername(username);
             user.setPassword(password);
             user.setRole(role);
 
@@ -68,3 +71,4 @@ public class UserController {
         }
     }
 }
+

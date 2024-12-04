@@ -23,7 +23,7 @@ public class TransactionController {
     private UserRepository userRepository;
 
     private Long getUserIdFromPrincipal(Principal principal) {
-        return userRepository.findByEmail(principal.getName())
+        return userRepository.findByEmailOrUsername(principal.getName())
                 .orElseThrow(() -> new IllegalArgumentException("User not found"))
                 .getId();
     }
@@ -51,12 +51,12 @@ public class TransactionController {
 
     @PostMapping("/withdraw")
     public String withdraw(@RequestParam BigDecimal amount, Model model, Principal principal) {
-        Long userId = getUserIdFromPrincipal(principal);
         try {
-            transactionService.withdraw(userId, amount);
+            Long userId = getUserIdFromPrincipal(principal);
+            transactionService.withdraw(userId, amount); // เรียกฟังก์ชัน withdraw
             model.addAttribute("successMessage", "Withdrawal successful!");
         } catch (IllegalArgumentException e) {
-            model.addAttribute("errorMessage", e.getMessage());
+            model.addAttribute("errorMessage", e.getMessage()); // แสดงข้อผิดพลาดถ้ามี
         }
         return "redirect:/dashboard";
     }
