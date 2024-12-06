@@ -17,11 +17,36 @@
     <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
 
     <style>
-        /* Ensure the chart is responsive and fits the container */
+        /* Style for the card container to display everything in one card */
+        .dashboard-card {
+            background-color: #f8f9fc;
+            border-radius: 8px;
+            box-shadow: 0 4px 6px rgba(0, 0, 0, 0.1);
+            padding: 20px;
+            margin-top: 20px;
+        }
+
+        .dashboard-card h5 {
+            font-size: 1.25rem;
+            margin-bottom: 10px;
+        }
+
+        .dashboard-card p {
+            font-size: 1.1rem;
+        }
+
+        /* Style for the chart */
         .chart-container {
             position: relative;
-            height: 400px; /* You can adjust this height based on preference */
+            height: 400px;
             width: 100%;
+            margin-top: 30px;
+        }
+
+        /* Button styles */
+        .btn-action {
+            width: 100%;
+            margin-bottom: 20px;
         }
     </style>
 
@@ -44,19 +69,37 @@
 
             <!-- Main Content -->
             <div class="container-fluid">
-                <h1 class="text-center">Welcome, <span th:text="${username}">User</span>!</h1>
-                <h2 class="text-center mt-3">Your Current Balance: <span th:text="${formattedBalance}">0.00</span> THB</h2>
 
-                <!-- Dashboard Features -->
-                <div class="row mt-5">
-                    <div class="col-md-6 text-center">
-                        <a href="/transactions/deposit" class="btn btn-success btn-lg w-100 mb-4">
+                <!-- Card for displaying user details, balance, and chart -->
+                <div class="dashboard-card">
+                    <!-- User Info and Role in the same row -->
+                    <div class="d-flex justify-content-between">
+                        <h5 th:text="${fullName}">John Doe</h5>
+                        <p th:text="${role}" class="text-end">Active</p>
+                    </div>
+
+                    <p th:text="${userId}"> 123456</p>
+
+                    <h5>Account Balance (THB)</h5>
+                    <p th:text="${formattedBalance}">0.00</p>
+
+                </div>
+
+                <!-- Action Buttons for Deposit, Withdraw, and Transfer -->
+                <div class="row mt-4">
+                    <div class="col-md-4">
+                        <a href="/transactions/deposit" class="btn btn-success btn-action">
                             <i class="fas fa-plus-circle"></i> Deposit Money
                         </a>
                     </div>
-                    <div class="col-md-6 text-center">
-                        <a href="/transactions/withdraw" class="btn btn-danger btn-lg w-100 mb-4">
+                    <div class="col-md-4">
+                        <a href="/transactions/withdraw" class="btn btn-danger btn-action">
                             <i class="fas fa-minus-circle"></i> Withdraw Money
+                        </a>
+                    </div>
+                    <div class="col-md-4">
+                        <a href="/transactions/transfer" class="btn btn-primary btn-action">
+                            <i class="fas fa-exchange-alt"></i> Transfer Money
                         </a>
                     </div>
                 </div>
@@ -75,14 +118,6 @@
             <!-- End Main Content -->
         </div>
 
-        <!-- Footer -->
-        <footer class="sticky-footer bg-white">
-            <div class="container my-auto">
-                <div class="copyright text-center my-auto">
-                    <span>Copyright © Tech iBanking 2024</span>
-                </div>
-            </div>
-        </footer>
     </div>
     <!-- End Content Wrapper -->
 </div>
@@ -92,9 +127,9 @@
 
 <!-- Script to Render the Chart -->
 <script>
-    // Sample data from Controller (replace with dynamic data)
-    var income = [[${income}]];  // ดึงข้อมูลจาก Controller
-    var expenses = [[${expenses}]];  // ดึงข้อมูลจาก Controller
+    // Retrieve the dynamic data passed from the controller
+    var income = [[${incomeValue}]];  // Dynamic income value from the controller
+    var expenses = [[${expensesValue}]];  // Dynamic expenses value from the controller
 
     // Chart.js - Income vs Expenses
     var ctx = document.getElementById('incomeExpenseChart').getContext('2d');
@@ -104,7 +139,7 @@
             labels: ['Income', 'Expenses'],
             datasets: [{
                 label: 'Income vs Expenses',
-                data: [income, expenses], // Data from Controller
+                data: [income, expenses], // Data passed from Controller
                 backgroundColor: ['#28a745', '#dc3545'],  // Green for Income, Red for Expenses
                 borderColor: ['#155724', '#721c24'],
                 borderWidth: 2,
@@ -127,7 +162,9 @@
                 tooltip: {
                     callbacks: {
                         label: function(tooltipItem) {
-                            return tooltipItem.label + ": " + tooltipItem.raw.toFixed(2) + " THB";
+                            // Format number with commas
+                            var value = tooltipItem.raw;
+                            return tooltipItem.label + ": " + value.toLocaleString() + " THB"; // Use toLocaleString to add commas
                         }
                     }
                 }

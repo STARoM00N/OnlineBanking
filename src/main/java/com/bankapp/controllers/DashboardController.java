@@ -24,7 +24,6 @@ public class DashboardController {
 
     @GetMapping("/dashboard")
     public String dashboardPage(Model model, Principal principal) {
-        // Retrieve username from Principal
         String usernameOrEmail = principal.getName();
 
         // Find user by username or email
@@ -38,7 +37,6 @@ public class DashboardController {
 
         // Get user's balance
         BigDecimal balance = transactionService.getUserBalance(user.getId());
-        // Format the balance
         DecimalFormat df = new DecimalFormat("#,###.00");
         String formattedBalance = df.format(balance);
 
@@ -55,9 +53,15 @@ public class DashboardController {
         model.addAttribute("formattedIncome", formattedIncome);
         model.addAttribute("formattedExpenses", formattedExpenses);
         model.addAttribute("username", user.getUsername());
-        model.addAttribute("income", income); // For chart
-        model.addAttribute("expenses", expenses); // For chart
+        model.addAttribute("fullName", user.getFullName());
+        model.addAttribute("userId", user.getId());
+        model.addAttribute("role", user.getRole());
+
+        // Pass the actual numeric values for chart
+        model.addAttribute("incomeValue", income);
+        model.addAttribute("expensesValue", expenses);
 
         return "dashboard";
     }
+
 }

@@ -51,6 +51,10 @@ public class TransactionController {
         Long userId = getUserIdFromPrincipal(principal);
         List<Transaction> transactions = transactionService.getTransactionHistory(userId);
 
+        // ตรวจสอบ username และส่งไปยังหน้า transaction history
+        String username = userRepository.findById(userId).get().getUsername();
+        model.addAttribute("username", username);
+
         // Format transactions
         for (Transaction transaction : transactions) {
             transaction.setFormattedAmount(formatAmount(transaction.getAmount()));
