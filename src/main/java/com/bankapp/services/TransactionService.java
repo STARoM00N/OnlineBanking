@@ -24,23 +24,42 @@ public class TransactionService {
     @Autowired
     private UserRepository userRepository;
 
+    // คำนวณรายรับทั้งหมด (การฝาก)
+    public BigDecimal getTotalIncome(Long userId) {
+        BigDecimal income = transactionRepository.findByUserId(userId).stream()
+                .filter(transaction -> transaction.getType().equals("DEPOSIT"))  // คัดกรองการฝากเงิน
+                .map(Transaction::getAmount)
+                .reduce(BigDecimal.ZERO, BigDecimal::add);  // รวมรายรับ
+        return income;
+    }
+
+    // คำนวณรายจ่ายทั้งหมด (การถอน)
+    public BigDecimal getTotalExpenses(Long userId) {
+        BigDecimal expenses = transactionRepository.findByUserId(userId).stream()
+                .filter(transaction -> transaction.getType().equals("WITHDRAWAL"))  // คัดกรองการถอนเงิน
+                .map(Transaction::getAmount)
+                .reduce(BigDecimal.ZERO, BigDecimal::add);  // รวมรายจ่าย
+        return expenses;
+    }
+
+    // การฝากเงิน
     public void deposit(Long userId, BigDecimal amount) {
         User user = userRepository.findById(userId)
                 .orElseThrow(() -> new IllegalArgumentException("User not found"));
-        user.setBalance(user.getBalance().add(amount));
+        user.setBalance(user.getBalance().add(amount));  // เพิ่มยอดเงินในบัญชี
         userRepository.save(user);
 
+        // สร้างธุรกรรมฝากเงิน
         Transaction transaction = new Transaction();
         transaction.setUser(user);
         transaction.setType("DEPOSIT");
-        transaction.setAmount(amount);
+        transaction.setAmount(amount);  // จำนวนเงินที่ฝาก
         transaction.setCreatedAt(LocalDateTime.now());
         transactionRepository.save(transaction);
     }
 
-    // การสร้างธุรกรรมใหม่ในฟังก์ชัน withdraw
+    // การถอนเงิน
     public void withdraw(Long userId, BigDecimal amount) {
-        // ตรวจสอบยอดเงินในบัญชี และทำการถอนเงิน
         if (amount.compareTo(BigDecimal.ZERO) <= 0) {
             throw new IllegalArgumentException("Amount must be greater than zero");
         }
@@ -49,18 +68,16 @@ public class TransactionService {
             throw new IllegalArgumentException("Insufficient balance");
         }
 
-        // สร้างธุรกรรมใหม่
-        Transaction transaction = new Transaction();
-        transaction.setUser(user);
-        transaction.setAmount(amount);
-        transaction.setType("WITHDRAW");
-        transaction.setCreatedAt(LocalDateTime.now());  // ตั้งค่า createdAt เป็นเวลาปัจจุบัน
-
         // ลดยอดเงินในบัญชี
         user.setBalance(user.getBalance().subtract(amount));
         userRepository.save(user);
 
-        // บันทึกธุรกรรม
+        // สร้างธุรกรรมถอนเงิน
+        Transaction transaction = new Transaction();
+        transaction.setUser(user);
+        transaction.setAmount(amount);  // จำนวนเงินที่ถอน
+        transaction.setType("WITHDRAWAL");
+        transaction.setCreatedAt(LocalDateTime.now());  // ตั้งเวลา
         transactionRepository.save(transaction);
     }
 
@@ -94,6 +111,7 @@ public class TransactionService {
         transactionRepository.save(receiverTransaction);
     }
 
+    // คำนวณยอดเงินคงเหลือ
     public BigDecimal getUserBalance(Long userId) {
         User user = userRepository.findById(userId)
                 .orElseThrow(() -> new IllegalArgumentException("User not found"));

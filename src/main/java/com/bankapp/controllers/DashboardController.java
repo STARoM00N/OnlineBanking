@@ -32,24 +32,32 @@ public class DashboardController {
                 .orElse(null);
 
         if (user == null) {
-            // Handle case where user is not found
             model.addAttribute("errorMessage", "User not found.");
             return "error-page";
         }
 
         // Get user's balance
         BigDecimal balance = transactionService.getUserBalance(user.getId());
-
         // Format the balance
         DecimalFormat df = new DecimalFormat("#,###.00");
         String formattedBalance = df.format(balance);
 
+        // Get total income and expenses for the user
+        BigDecimal income = transactionService.getTotalIncome(user.getId());
+        BigDecimal expenses = transactionService.getTotalExpenses(user.getId());
+
+        // Format the income and expenses
+        String formattedIncome = df.format(income);
+        String formattedExpenses = df.format(expenses);
+
         // Pass data to the view
         model.addAttribute("formattedBalance", formattedBalance);
+        model.addAttribute("formattedIncome", formattedIncome);
+        model.addAttribute("formattedExpenses", formattedExpenses);
         model.addAttribute("username", user.getUsername());
+        model.addAttribute("income", income); // For chart
+        model.addAttribute("expenses", expenses); // For chart
+
         return "dashboard";
     }
-
-
 }
-

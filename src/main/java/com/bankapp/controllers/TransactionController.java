@@ -51,29 +51,45 @@ public class TransactionController {
         Long userId = getUserIdFromPrincipal(principal);
         List<Transaction> transactions = transactionService.getTransactionHistory(userId);
 
-        // ตรวจสอบจำนวนธุรกรรม
-        System.out.println("Number of transactions: " + transactions.size());
-
-        // Format each transaction amount
+        // Format transactions
         for (Transaction transaction : transactions) {
-            String formattedAmount = formatAmount(transaction.getAmount());
-            transaction.setFormattedAmount(formattedAmount);
-
-            // Format date for each transaction
-            String formattedDate = formatDate(transaction.getCreatedAt());
-            transaction.setFormattedDate(formattedDate); // เก็บวันที่ที่จัดรูปแบบแล้ว
+            transaction.setFormattedAmount(formatAmount(transaction.getAmount()));
+            transaction.setFormattedDate(formatDate(transaction.getCreatedAt()));
         }
 
+        // เพิ่มยอดเงินคงเหลือ
+        BigDecimal balance = transactionService.getUserBalance(userId);
+        String formattedBalance = formatAmount(balance);
+
         model.addAttribute("transactions", transactions);
+        model.addAttribute("formattedBalance", formattedBalance); // ส่งยอดเงินคงเหลือ
         return "transaction-history";
+    }
+
+    @GetMapping("/deposit")
+    public String showDepositPage(Model model, Principal principal) {
+        Long userId = getUserIdFromPrincipal(principal);
+        model.addAttribute("username", userRepository.findById(userId).orElseThrow().getUsername());
+        return "deposit";
     }
 
     @PostMapping("/deposit")
     public String deposit(@RequestParam BigDecimal amount, Model model, Principal principal) {
+        try {
+            Long userId = getUserIdFromPrincipal(principal);
+            transactionService.deposit(userId, amount);
+            model.addAttribute("successMessage", "Deposit successful!");
+        } catch (IllegalArgumentException e) {
+            model.addAttribute("errorMessage", e.getMessage());
+        }
+        return "deposit"; // แสดงผลใน deposit.html
+    }
+
+    @GetMapping("/withdraw")
+    public String showWithdrawPage(Model model, Principal principal) {
         Long userId = getUserIdFromPrincipal(principal);
-        transactionService.deposit(userId, amount);
-        model.addAttribute("successMessage", "Deposit successful!");
-        return "redirect:/dashboard";
+        model.addAttribute("username", userRepository.findById(userId).orElseThrow().getUsername());
+        return "withdraw";
     }
 
     @PostMapping("/withdraw")
@@ -85,9 +101,14 @@ public class TransactionController {
         } catch (IllegalArgumentException e) {
             model.addAttribute("errorMessage", e.getMessage());
         }
+        return "withdraw"; // แสดงผลใน withdraw.html
+    }
 
-        // ส่งกลับไปที่หน้า dashboard หลังการถอน
-        return "redirect:/dashboard"; // ชื่อเทมเพลตที่คุณต้องการแสดงหลังจากถอน
+    @GetMapping("/transfer")
+    public String showTransferPage(Model model, Principal principal) {
+        Long userId = getUserIdFromPrincipal(principal);
+        model.addAttribute("username", userRepository.findById(userId).orElseThrow().getUsername());
+        return "transfer";
     }
 
     @PostMapping("/transfer")
@@ -101,4 +122,5 @@ public class TransactionController {
         }
         return "redirect:/dashboard";
     }
+
 }
